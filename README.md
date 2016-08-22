@@ -15,7 +15,7 @@ Type next command from project's directory:
 
  <code> $ sudo nohup python script.py &</code>
 
-You can stop terminal session after that - the script will work in background mode
+You can stop terminal session after that - the script will work on itself
 
 Why 'Katana'?
 -------------
