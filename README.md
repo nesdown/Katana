@@ -11,7 +11,7 @@ Features
 
 Instructions
 ------------
-Read this step-by-step tutorial with code explanations. Also, take a look at project example in 'Bots Examples' folder. 
+Read this step-by-step tutorial with code explanations. Also, take a look at project examples in 'Bots Examples' folder. 
 
 Launch
 ------
