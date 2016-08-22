@@ -9,6 +9,10 @@ Features
 - automated system for finding pictures via Bing Search and getting them on a hard drive full-sized
 - connected translation library for work with information given in different languages
 
+Instructions
+------------
+Read this step-by-step tutorial with code explanations. Also, take a look at project example in 'Bots Examples' folder. 
+
 Launch
 ------
 Type next command from project's directory:
