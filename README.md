@@ -13,7 +13,7 @@ Launch
 ------
 Type next command from project's directory:
 
-  $ sudo nohup python script.py &
+ <code> $ sudo nohup python script.py &</code>
 
 You can stop terminal session after that - the script will work in background mode
 
