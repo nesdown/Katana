@@ -25,3 +25,5 @@ Why 'Katana'?
 -------------
 Because this technology cuts web-scrapped data into parts just like a sharp sword.
 
+.. image:: http://i63.tinypic.com/xknouh.png
+
