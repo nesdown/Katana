@@ -18,6 +18,7 @@ import json as m_json
 reload(sys)
 sys.setdefaultencoding('utf-8')
 #Initialize Twitter API, api.update_status(status=sth) is for posts
+#Use OAuth2 with simplified api key/token declaring
 apiKey = 'sampleKey'
 apiSecret = 'sampleSecret'
 accessToken = 'sampleToken'
