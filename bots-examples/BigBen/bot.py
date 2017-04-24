@@ -17,6 +17,6 @@ import katana
 while True:
   now = datetime.datetime.now()
 
-  katana.runSimpleBot("привет!",5)
+  katana.runSimpleBot("BOM"*now.second,5)
 
 
