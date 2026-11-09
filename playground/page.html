@@ -1,0 +1,252 @@
+<meta charset="utf-8">
+<title>Katana Playground</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Onest:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a forge bench. Raw text on the left, five finished cuts on the right, one screen, a blade for every meter. */
+:root {
+  color-scheme: dark;
+  --ink: #12182e;        /* aizome indigo, the cloth a blade is wrapped in */
+  --ink-2: #1a2240;
+  --ink-3: #27305a;
+  --steel: #e6e8ef;
+  --steel-dim: #9aa2bd;
+  --brass: #d9a94f;      /* habaki, the collar at the base of the blade */
+  --cut: #ff7a66;
+  --display: "Shippori Mincho B1", "Hiragino Mincho ProN", Georgia, serif;
+  --body: "Onest", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+html, body { height: 100%; }
+body { background: var(--ink); color: var(--steel); font-family: var(--body); }
+.bench {
+  height: 100%; box-sizing: border-box; display: grid; gap: 28px;
+  grid-template-columns: minmax(300px, 30%) minmax(0, 1fr);
+  padding-block: 24px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.raw { display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; }
+h1 { font: 800 clamp(56px, 7vw, 104px)/.9 var(--display); margin: 0; letter-spacing: -.02em; }
+h1 span { color: var(--brass); font-size: .42em; vertical-align: .95em; margin-left: .15em; }
+.lede { margin: 0; font-size: 19px; line-height: 1.3; text-wrap: balance; }
+label { display: block; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--steel-dim); margin-bottom: 5px; }
+.grow { flex: 1; display: flex; flex-direction: column; min-height: 90px; }
+textarea, input[type=text] {
+  width: 100%; box-sizing: border-box; background: var(--ink-2); color: var(--steel);
+  border: 1px solid var(--ink-3); border-radius: 4px; padding: 10px 12px; font: 400 15px/1.4 var(--body);
+}
+textarea { flex: 1; resize: none; }
+textarea:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+button.preset {
+  background: none; color: var(--steel); border: 1px solid var(--ink-3); border-radius: 99px;
+  padding: 6px 12px; font: 500 13px var(--body); cursor: pointer;
+}
+button.preset:hover { border-color: var(--brass); }
+button.preset[aria-pressed=true] { background: var(--brass); border-color: var(--brass); color: var(--ink); }
+.switch { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.switch input { accent-color: var(--brass); width: 16px; height: 16px; margin: 0; }
+
+.cuts { position: relative; display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); min-height: 0; overflow: hidden; }
+.card { background: var(--ink-2); border-radius: 4px; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px; min-width: 0; min-height: 0; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.head b { font: 800 22px var(--display); }
+.count { font: 500 13px var(--mono); font-variant-numeric: tabular-nums; color: var(--steel-dim); white-space: nowrap; }
+.blade { height: 7px; background: var(--ink-3); clip-path: polygon(0 0, 97% 0, 100% 100%, 0 100%); }
+.blade i { display: block; height: 100%; width: 0; background: linear-gradient(180deg, #fff, var(--steel-dim)); transition: width .35s cubic-bezier(.2,.8,.2,1); }
+.blade.full i { background: linear-gradient(180deg, #ffe0a3, var(--brass)); }
+.rule { font: 400 12px var(--mono); color: var(--steel-dim); }
+.text { flex: 1; overflow-y: auto; font-size: 14.5px; line-height: 1.42; white-space: pre-wrap; overflow-wrap: anywhere; min-height: 0; }
+.part + .part { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--ink-3); }
+.link { color: var(--brass); }
+.removed { font: 400 12px var(--mono); color: var(--cut); min-height: 1.3em; }
+.code { background: none; border: 1px solid var(--ink-3); font: 400 12.5px/1.5 var(--mono); color: var(--steel-dim); justify-content: center; white-space: pre; overflow: auto; }
+.code em { font-style: normal; color: var(--brass); }
+
+.slash { position: absolute; inset: -20%; pointer-events: none; opacity: 0; background: linear-gradient(115deg, transparent 48.6%, #fff 49.9%, var(--brass) 50.1%, transparent 51.4%); }
+.cuts.struck .slash { animation: slash .42s cubic-bezier(.3,.7,.2,1); }
+.cuts.struck .text { animation: reveal .42s cubic-bezier(.3,.7,.2,1); }
+@keyframes slash { 0% { opacity: 1; transform: translateX(-60%); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(60%); } }
+@keyframes reveal { from { clip-path: polygon(0 0, 0 0, -30% 100%, -30% 100%); } to { clip-path: polygon(0 0, 130% 0, 100% 100%, -30% 100%); } }
+@media (prefers-reduced-motion: reduce) { .cuts.struck .slash, .cuts.struck .text { animation: none; } .blade i { transition: none; } }
+
+@media (max-width: 1000px) {
+  html, body { height: auto; }
+  .bench { height: auto; grid-template-columns: minmax(0, 1fr); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  textarea { min-height: 130px; }
+  .cuts { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; overflow: visible; }
+  .slash { display: none; }
+  .text { overflow: visible; flex: none; }
+}
+</style>
+
+<main class="bench">
+  <section class="raw">
+    <h1>Katana<span>刀</span></h1>
+    <p class="lede">Type once. See it cut to fit every network's real rules.</p>
+    <div class="presets" id="presets" role="group" aria-label="Examples"></div>
+    <div class="grow">
+      <label for="body">Your post</label>
+      <textarea id="body"></textarea>
+    </div>
+    <div class="row">
+      <div><label for="url">Link</label><input type="text" id="url" spellcheck="false"></div>
+      <div><label for="credit">Credit</label><input type="text" id="credit"></div>
+    </div>
+    <label class="switch" style="text-transform:none;letter-spacing:0;color:var(--steel);font:400 14px var(--body);margin:0"><input type="checkbox" id="thread"> Split long posts into threads</label>
+  </section>
+  <section class="cuts" id="cuts" aria-live="polite">
+    <div class="slash" aria-hidden="true"></div>
+  </section>
+</main>
+
+<script>/*KATANA_BUNDLE*/</script>
+<script>
+const NETWORKS = [
+  { id: 'x', label: 'X', make: (t) => Katana.x({ threads: t }), rule: 'links 23, emoji 2, CJK 2' },
+  { id: 'bluesky', label: 'Bluesky', make: (t) => Katana.bluesky({ threads: t }), rule: 'long links get shortened' },
+  { id: 'mastodon', label: 'Mastodon', make: (t) => Katana.mastodon({ threads: t }), rule: 'every link counts as 23' },
+  { id: 'threads', label: 'Threads', make: (t) => Katana.threads({ threads: t }), rule: 'emoji count as bytes' },
+  { id: 'telegram', label: 'Telegram', make: () => Katana.telegram(), rule: 'room for long posts' },
+];
+
+const PRESETS = [
+  { name: 'Київ', credit: 'Українська правда', url: 'https://www.pravda.com.ua/news/2026/11/09/7512345/?utm_source=rss',
+    body: 'Київський метрополітен відновив рух на червоній лінії після масштабного ремонту 🚇🇺🇦 Перші поїзди вирушили о шостій ранку, і вже за годину на станціях зібралися тисячі пасажирів. Міська влада обіцяє, що до кінця року оновлять ще дві станції, а нові вагони з кондиціонерами вийдуть на лінію вже навесні. Пасажири зустріли новину оплесками, хоча дехто скаржився на черги біля турнікетів.' },
+  { name: 'Emoji', credit: '', url: '',
+    body: 'Family day 👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦 at the lake 🏞️🛶🐟 with the whole crew 🧑🏽‍🤝‍🧑🏻🧑🏾‍🤝‍🧑🏼. No family emoji gets cut in half here 👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦👨‍👩‍👧‍👦' },
+  { name: '日本語', credit: 'NHK', url: 'https://www3.nhk.or.jp/news/html/20261109/k10014.html',
+    body: '東京の刀鍛冶が千年続く技法を守りながら、若い世代に伝統を伝えています。工房では毎朝、炎の色を見て鋼の温度を判断します。この技術は機械では再現できないと言われており、弟子たちは十年以上かけて習得します。海外からの見学者も増えており、今年は過去最多となりました。伝統と革新の間で、職人たちの挑戦は続きます。' },
+  { name: 'Long read', credit: 'Space Weekly', url: 'https://example.com/a/very/long/path/to/an/article/about/moons/and/water',
+    body: 'Scientists have found signs of liquid water beneath the surface of a distant moon. The discovery came from ten years of careful measurements. Researchers say the ocean could be deeper than any on Earth. It sits under a shell of ice several kilometres thick. Heat from the moon\'s core may keep the water from freezing. That matters because water, heat and chemistry are the basic ingredients for life as we know it. A new probe could reach the moon within a decade. Until then, the team plans to keep studying the data they already have. "We are only at the beginning," the lead author said.' },
+];
+
+const $ = (id) => document.getElementById(id);
+const fields = { body: $('body'), url: $('url'), credit: $('credit'), thread: $('thread') };
+const grid = $('cuts');
+const cards = new Map();
+
+for (const n of NETWORKS) {
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.innerHTML = `<div class="head"><b>${n.label}</b><span class="count"></span></div><div class="blade"><i></i></div><div class="rule">${n.rule}</div><div class="text"></div><div class="removed"></div>`;
+  grid.append(card);
+  cards.set(n.id, card);
+}
+const code = document.createElement('article');
+code.className = 'card code';
+code.innerHTML = `<span><em>katana</em>({
+  sources: [web('any-site.com')],
+  targets: [x(), bluesky(), mastodon(),
+            threads(), telegram()],
+  store: fileStore(),
+})
+
+<em>$</em> katana preview
+<em>$</em> katana run</span>`;
+grid.append(code);
+
+const presetBar = $('presets');
+PRESETS.forEach((p, i) => {
+  const b = document.createElement('button');
+  b.className = 'preset';
+  b.type = 'button';
+  b.textContent = p.name;
+  b.addEventListener('click', () => load(i));
+  presetBar.append(b);
+});
+
+function load(i) {
+  const p = PRESETS[i];
+  fields.body.value = p.body;
+  fields.url.value = p.url;
+  fields.credit.value = p.credit;
+  [...presetBar.children].forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+  render(true);
+}
+
+function paint(el, text) {
+  el.textContent = '';
+  let last = 0;
+  for (const { url, index } of Katana.findUrls(text)) {
+    el.append(text.slice(last, index));
+    const a = document.createElement('span');
+    a.className = 'link';
+    a.textContent = url;
+    el.append(a);
+    last = index + url.length;
+  }
+  el.append(text.slice(last));
+}
+
+function paintBluesky(el, source) {
+  const { text, facets } = Katana.bskyRichText(source);
+  const bytes = new TextEncoder().encode(text);
+  const decode = (a, b) => new TextDecoder().decode(bytes.slice(a, b));
+  el.textContent = '';
+  let at = 0;
+  for (const f of facets) {
+    el.append(decode(at, f.index.byteStart));
+    const s = document.createElement('span');
+    s.className = 'link';
+    s.textContent = decode(f.index.byteStart, f.index.byteEnd);
+    el.append(s);
+    at = f.index.byteEnd;
+  }
+  el.append(decode(at, bytes.length));
+}
+
+let run = 0;
+async function render(strike) {
+  const mine = ++run;
+  const body = fields.body.value.trim() || ' ';
+  const threaded = fields.thread.checked ? 5 : 1;
+  let url = fields.url.value.trim() || undefined;
+  if (url) { try { const u = new URL(url); for (const k of [...u.searchParams.keys()]) if (/^(utm_|at_|fbclid)/.test(k)) u.searchParams.delete(k); url = u.href; } catch { url = undefined; } }
+  const item = { key: 'k', source: 's', title: body, url, credit: fields.credit.value.trim() || undefined, media: [], tags: [], meta: {} };
+  const results = await Promise.all(NETWORKS.map(async (n) => {
+    const target = n.make(threaded);
+    return { n, target, post: await Katana.compose(item, target) };
+  }));
+  if (mine !== run) return;
+  for (const { n, target, post } of results) {
+    const card = cards.get(n.id);
+    const counts = post.parts.map((p) => target.limits.count(p));
+    const max = target.limits.maxChars;
+    card.querySelector('.count').textContent = `${counts.join(' + ')} / ${max}`;
+    const fill = Math.min(1, counts[0] / max);
+    const blade = card.querySelector('.blade');
+    blade.querySelector('i').style.width = `${fill * 100}%`;
+    blade.classList.toggle('full', fill >= 0.9);
+    const text = card.querySelector('.text');
+    text.textContent = '';
+    for (const part of post.parts) {
+      const div = document.createElement('div');
+      div.className = 'part';
+      if (n.id === 'bluesky') paintBluesky(div, part); else paint(div, part);
+      text.append(div);
+    }
+    const kept = post.parts.join(' ');
+    const trimmed = kept.includes('…') && !body.includes('…');
+    card.querySelector('.removed').textContent = post.parts.length > 1 ? `split into ${post.parts.length} posts` : trimmed ? 'shortened at a clean break' : '';
+  }
+  if (strike) {
+    grid.classList.remove('struck');
+    void grid.offsetWidth;
+    grid.classList.add('struck');
+  }
+}
+
+let timer;
+for (const key of ['body', 'url', 'credit']) {
+  fields[key].addEventListener('input', () => {
+    [...presetBar.children].forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    clearTimeout(timer);
+    render(false);
+    timer = setTimeout(() => render(true), 450);
+  });
+}
+fields.thread.addEventListener('change', () => render(true));
+load(0);
+</script>

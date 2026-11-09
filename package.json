@@ -1,0 +1,98 @@
+{
+  "name": "katana-bot",
+  "version": "2.0.0-alpha.1",
+  "description": "Cut the web into posts. A TypeScript library for autonomous publishing bots: sources, cuts, targets and crash-safe memory.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Bohdan Hlushko",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nesdown/Katana.git"
+  },
+  "keywords": [
+    "bot",
+    "bluesky",
+    "mastodon",
+    "threads",
+    "twitter",
+    "x",
+    "telegram",
+    "discord",
+    "rss",
+    "automation",
+    "social-media",
+    "mcp"
+  ],
+  "engines": {
+    "node": ">=20.12"
+  },
+  "bin": {
+    "katana": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./sources": {
+      "types": "./dist/sources/index.d.ts",
+      "default": "./dist/sources/index.js"
+    },
+    "./cuts": {
+      "types": "./dist/cuts/index.d.ts",
+      "default": "./dist/cuts/index.js"
+    },
+    "./targets": {
+      "types": "./dist/targets/index.d.ts",
+      "default": "./dist/targets/index.js"
+    },
+    "./stores": {
+      "types": "./dist/stores/index.d.ts",
+      "default": "./dist/stores/index.js"
+    },
+    "./ai": {
+      "types": "./dist/ai/index.d.ts",
+      "default": "./dist/ai/index.js"
+    },
+    "./text": {
+      "types": "./dist/text/index.d.ts",
+      "default": "./dist/text/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && chmod +x dist/cli.js",
+    "test": "npm run build && vitest run",
+    "typecheck": "tsc --noEmit",
+    "playground": "node playground/build.mjs",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "linkedom": "^0.18.15"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.90.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

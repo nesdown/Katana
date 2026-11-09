@@ -1,0 +1,32 @@
+# Copy to .github/workflows/bot.yml in your bot's repository.
+# Add your credentials under Settings > Secrets and variables > Actions.
+name: Post
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+concurrency: katana
+permissions:
+  contents: write
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx katana run
+        env:
+          BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+      # Memory lives in the repository, so it survives between runs.
+      - name: Save memory
+        if: always()
+        run: |
+          git config user.name katana-bot
+          git config user.email katana-bot@users.noreply.github.com
+          git add -f .katana/state.json
+          git diff --cached --quiet || git commit -m "Update bot memory"
+          git push
